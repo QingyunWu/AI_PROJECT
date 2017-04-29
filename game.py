@@ -2,25 +2,9 @@
 
 import sys
 import time
+from eval import evalfunc
+from auxiliary import actions, check_if_win, check_is_full, check_terminate, drawBoard, player_make_move, result
 
-def drawBoard(board):
-    print('-------------------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[1]) + ' | ' + str(board[2]) + ' | ' + str(board[3]) + ' | ' + str(board[4]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[5]) + ' | ' + str(board[6]) + ' | ' + str(board[7]) + ' | ' + str(board[8]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[9]) + ' | ' + str(board[10]) + ' | ' + str(board[11]) + ' | ' + str(board[12]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[13]) + ' | ' + str(board[14]) + ' | ' + str(board[15]) + ' | ' + str(board[16]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
 
 
 
@@ -28,20 +12,9 @@ node_count = 1
 max_search_prunings = 0
 min_search_prunings = 0
 max_level = 0
-def check_is_full(board):
-    for cell in range(1,17):
-        if type(board[cell]) is int:
-            return False
-    return True
+cutoff_occured = False
 
-def actions(board):
-    available_moves = [x for x in range(1, 17) if type(board[x]) is int]
-    return available_moves
 
-def result(board, move, symbol):
-    new_board = list(board)
-    new_board[move] = symbol
-    return new_board
 
 def alpha_beta_search(board):
 
@@ -49,15 +22,16 @@ def alpha_beta_search(board):
     global min_search_prunings
     global node_count
     global max_level
+    global cutoff_occured
     start_time = time.time()
     # reset the prunings count and node_count to be initial value for next search
     max_search_prunings = 0
     min_search_prunings = 0
     node_count = 1 # includes the root node
     max_level = 0
+    cutoff_occured = False
 
     available_moves = actions(board)
-    print available_moves
     max_val = -sys.maxint
     # results record all the actions and its corresponding value after α β search
     results = {}
@@ -67,17 +41,24 @@ def alpha_beta_search(board):
         max_val = max(max_val, min_value)
 
     elapsed_time = time.time() - start_time
-    print "time elapsed {}".format(elapsed_time)
-    print results
 
-    print "max_search_prunings count {} ".format(max_search_prunings)
-    print "min_search_prunings count {} ".format(min_search_prunings)
-    print "total nodes generated for this alpha beta search: {}".format(node_count)
+    print "-------------------------"
+    print "If cutoff occured? {}".format(cutoff_occured)
+    print "-------------------------"
     print "max depth reached: {}".format(max_level)
+    print "-------------------------"
+    print "total nodes generated for this alpha beta search: {}".format(node_count)
+    print "-------------------------"
+    print "max_search_prunings count: {} ".format(max_search_prunings)
+    print "-------------------------"
+    print "min_search_prunings count: {} ".format(min_search_prunings)
+    print "-------------------------"
+    print "Time elapsed: {}".format(elapsed_time)
+    print "-------------------------"
 
     for move in results.keys():
         if results.get(move) == max_val:
-            print "PC choose to go " + str(move) + " with the value of {}".format(max_val)
+            print "PC chose to go cell" + str(move)
             return move
 
 
@@ -87,6 +68,7 @@ def max_value_search(board, alpha, beta, last_move, level):
     global node_count
     global max_search_prunings
     global max_level
+    global cutoff_occured
     # every time max search called, new node gernerated
     node_count += 1
     if_terminate = check_terminate(board, last_move)
@@ -101,6 +83,9 @@ def max_value_search(board, alpha, beta, last_move, level):
     for move in available_moves:
         if level + 1 > max_level:
             max_level = level + 1
+        if level >= 6:
+            cutoff_occured = True
+            return evalfunc(result(board, move, 'X'))
         max_value = max(max_value, min_value_search(result(board, move, 'X'), alpha, beta, move, level+1))
         if max_value >= beta:
             max_search_prunings += 1
@@ -110,8 +95,7 @@ def max_value_search(board, alpha, beta, last_move, level):
 
 
 def min_value_search(board, alpha, beta, last_move, level):
-    # print "min search, last move is {}, level is {}".format(last_move, level)
-
+    global cutoff_occured
     global node_count
     global min_search_prunings
     global max_level
@@ -122,13 +106,13 @@ def min_value_search(board, alpha, beta, last_move, level):
         return if_terminate[1]
     min_value = sys.maxint
     available_moves = actions(board)
-    # print available_moves
 
     for move in available_moves:
         if level + 1 > max_level:
             max_level = level + 1
-        # print "move: {} ".format(move)
-
+        if level >= 6:
+            cutoff_occured = True
+            return evalfunc(result(board, move, 'O'))
         min_value = min(min_value, max_value_search(result(board, move, 'O'), alpha, beta, move, level+1))
 
         if min_value <= alpha:
@@ -140,76 +124,16 @@ def min_value_search(board, alpha, beta, last_move, level):
 
     return min_value
 
-def check_terminate(board, move):
-
-    last_symbol = board[move]
-    if_win = check_if_win(board, move)
-    if last_symbol == 'X' and if_win:
-        return (True, 1000)
-    if last_symbol == 'O' and if_win:
-        return (True, -1000)
-    if check_is_full(board):
-        return (True, 0)
-    # print "mei wan"
-    return (False, 1234)
-
-def player_make_move(board):
-    move = input("Now it's your turn, pick a cell to place your SYMBOL 'O'. (1 ~ 16) ")
-    return move
-
-# check if the player or computer has already won
-def check_if_win(board, last_move):
-    last_symbol = board[last_move]
-    line_count = 0
-    for num in [x for x in range(1,17) if x % 4 == last_move % 4]:
-        if board[num] != last_symbol:
-            line_count = 0
-            break
-        else:
-            line_count += 1
-    if line_count == 4:
-        return True
-
-    for num in [x for x in range(1,17) if (x - 1)/4 == (last_move - 1)/4]:
-        if board[num] != last_symbol:
-            line_count = 0
-            break
-        else:
-            line_count += 1
-    if line_count == 4:
-        return True
-
-    if last_move in [1,6,11,16]:
-        for num in [1,6,11,16]:
-            if board[num] != last_symbol:
-                line_count = 0
-                break
-            else:
-                line_count += 1
-        if line_count == 4:
-            return True
-
-    if last_move in [4,7,10,13]:
-        for num in [4,7,10,13]:
-            if board[num] != last_symbol:
-                line_count = 0
-                break
-            else:
-                line_count += 1
-        if line_count == 4:
-            return True
-    # in the end, return False
-    return False
 
 # program start point
 if __name__ == '__main__':
     board = [x for x in range(0, 17)]
-    for x in [1,3,5,7,9,11]:
+    for x in []:
         board[x] = 'O'
-    for x in [2,4,6,8,13]:
+    for x in []:
         board[x] = 'X'
     drawBoard(board)
-    # print "min search value " + str(min_value_search(board, 16, 8))
+
     user_input = raw_input("Welcome, you want to go first? (y/n) ")
     turn = 'user' if user_input == 'y' else 'pc'
     game_is_on = True
