@@ -24,8 +24,6 @@ def drawBoard(board):
 
 
 
-alpha = -1000
-beta = 1000
 node_count = 1
 max_search_prunings = 0
 min_search_prunings = 0
@@ -46,8 +44,7 @@ def result(board, move, symbol):
     return new_board
 
 def alpha_beta_search(board):
-    global alpha
-    global beta
+
     global max_search_prunings
     global min_search_prunings
     global node_count
@@ -58,15 +55,14 @@ def alpha_beta_search(board):
     min_search_prunings = 0
     node_count = 1 # includes the root node
     max_level = 0
-    alpha = -1000
-    beta = 1000
+
     available_moves = actions(board)
     print available_moves
     max_val = -sys.maxint
     # results record all the actions and its corresponding value after α β search
     results = {}
     for move in available_moves:
-        min_value = min_value_search(result(board, move, 'X'), move, 1)
+        min_value = min_value_search(result(board, move, 'X'), -1000, 1000, move, 1)
         results[move] = min_value
         max_val = max(max_val, min_value)
 
@@ -86,9 +82,8 @@ def alpha_beta_search(board):
 
 
 
-def max_value_search(board, last_move, level):
-    global alpha
-    global beta
+def max_value_search(board, alpha, beta, last_move, level):
+
     global node_count
     global max_search_prunings
     global max_level
@@ -106,19 +101,17 @@ def max_value_search(board, last_move, level):
     for move in available_moves:
         if level + 1 > max_level:
             max_level = level + 1
-        max_value = max(max_value, min_value_search(result(board, move, 'X'), move, level+1))
+        max_value = max(max_value, min_value_search(result(board, move, 'X'), alpha, beta, move, level+1))
         if max_value >= beta:
             max_search_prunings += 1
-
             return max_value
         alpha = max(alpha, max_value)
     return max_value
 
 
-def min_value_search(board, last_move, level):
+def min_value_search(board, alpha, beta, last_move, level):
     # print "min search, last move is {}, level is {}".format(last_move, level)
-    global beta
-    global alpha
+
     global node_count
     global min_search_prunings
     global max_level
@@ -135,9 +128,8 @@ def min_value_search(board, last_move, level):
         if level + 1 > max_level:
             max_level = level + 1
         # print "move: {} ".format(move)
-        print alpha
-        print beta
-        min_value = min(min_value, max_value_search(result(board, move, 'O'), move, level+1))
+
+        min_value = min(min_value, max_value_search(result(board, move, 'O'), alpha, beta, move, level+1))
 
         if min_value <= alpha:
 
@@ -149,7 +141,7 @@ def min_value_search(board, last_move, level):
     return min_value
 
 def check_terminate(board, move):
-    
+
     last_symbol = board[move]
     if_win = check_if_win(board, move)
     if last_symbol == 'X' and if_win:
