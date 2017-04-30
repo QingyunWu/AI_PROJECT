@@ -1,30 +1,30 @@
 def drawBoard(board):
     print('-------------------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[1]) + ' | ' + str(board[2]) + ' | ' + str(board[3]) + ' | ' + str(board[4]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[5]) + ' | ' + str(board[6]) + ' | ' + str(board[7]) + ' | ' + str(board[8]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[9]) + ' | ' + str(board[10]) + ' | ' + str(board[11]) + ' | ' + str(board[12]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
-    print('|   |   |   |   |')
-    print('| ' + str(board[13]) + ' | ' + str(board[14]) + ' | ' + str(board[15]) + ' | ' + str(board[16]) + ' | ')
-    print('|   |   |   |   |')
-    print('-----------------')
+    print('|     |     |     |     |')
+    print('|  ' + str(board[1]) + '  |  ' + str(board[2]) + '  |  ' + str(board[3]) + '  |  ' + str(board[4]) + '  | ')
+    print('|     |     |     |     |')
+    print('-------------------------')
+    print('|     |     |     |     |')
+    print('|  ' + str(board[5]) + '  |  ' + str(board[6]) + '  |  ' + str(board[7]) + '  |  ' + str(board[8]) + '  | ')
+    print('|     |     |     |     |')
+    print('-------------------------')
+    print('|     |     |     |     |')
+    print('|  ' + str(board[9]) + '  |  ' + str(board[10]) + '  |  ' + str(board[11]) + '  |  ' + str(board[12]) + '  | ')
+    print('|     |     |     |     |')
+    print('-------------------------')
+    print('|     |     |     |     |')
+    print('|  ' + str(board[13]) + '  |  ' + str(board[14]) + '  |  ' + str(board[15]) + '  |  ' + str(board[16]) + '  | ')
+    print('|     |     |     |     |')
+    print('-------------------------')
 
 def check_is_full(board):
-    for cell in range(1,17):
-        if type(board[cell]) is int:
+    for x in range(1,17):
+        if board[x] == ' ':
             return False
     return True
 
 def actions(board):
-    available_moves = [x for x in range(1, 17) if type(board[x]) is int]
+    available_moves = [x for x in range(1, 17) if board[x] == ' ']
     return available_moves
 
 def result(board, move, symbol):
@@ -33,7 +33,6 @@ def result(board, move, symbol):
     return new_board
 
 def check_terminate(board, move):
-
     last_symbol = board[move]
     if_win = check_if_win(board, move)
     if last_symbol == 'X' and if_win:
@@ -46,7 +45,11 @@ def check_terminate(board, move):
     return (False, 1234)
 
 def player_make_move(board):
-    move = input("Now it's your turn, pick a cell to place your SYMBOL 'O'. (1 ~ 16) ")
+    available_moves = actions(board)
+    move = input("Now it's your turn, pick a cell to place your SYMBOL 'O'. (1 ~ 16 starts at left top) ")
+    if move not in available_moves:
+        print "The square has already been taken! Try another square!"
+        return player_make_move(board)
     return move
 
 # check if the player or computer has already won

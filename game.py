@@ -2,7 +2,8 @@
 
 import sys
 import time
-from eval import evalfunc
+import random
+from evalfunc import evalfunc
 from auxiliary import actions, check_if_win, check_is_full, check_terminate, drawBoard, player_make_move, result
 
 
@@ -16,7 +17,8 @@ cutoff_occured = False
 
 
 
-def alpha_beta_search(board):
+
+def alpha_beta_search(board, difficulty):
 
     global max_search_prunings
     global min_search_prunings
@@ -36,7 +38,7 @@ def alpha_beta_search(board):
     # results record all the actions and its corresponding value after α β search
     results = {}
     for move in available_moves:
-        min_value = min_value_search(result(board, move, 'X'), -1000, 1000, move, 1)
+        min_value = min_value_search(result(board, move, 'X'), -1000, 1000, move, 1, difficulty)
         results[move] = min_value
         max_val = max(max_val, min_value)
 
@@ -53,17 +55,17 @@ def alpha_beta_search(board):
     print "-------------------------"
     print "min_search_prunings count: {} ".format(min_search_prunings)
     print "-------------------------"
-    print "Time elapsed: {}".format(elapsed_time)
+    print "Time elapsed for the PC's move: {}".format(elapsed_time)
     print "-------------------------"
 
     for move in results.keys():
         if results.get(move) == max_val:
-            print "PC chose to go cell" + str(move)
+            print "PC chose to go sqaure: " + str(move)
             return move
 
 
 
-def max_value_search(board, alpha, beta, last_move, level):
+def max_value_search(board, alpha, beta, last_move, level, difficulty):
 
     global node_count
     global max_search_prunings
@@ -71,10 +73,9 @@ def max_value_search(board, alpha, beta, last_move, level):
     global cutoff_occured
     # every time max search called, new node gernerated
     node_count += 1
+    # return a tuple (boolean if_terminate, int value)
     if_terminate = check_terminate(board, last_move)
     if if_terminate[0]:
-        # print "MAX search, last move is {}, leve is {}".format(last_move, level) + " Terminated"
-
         return if_terminate[1]
 
     max_value = -sys.maxint
@@ -83,10 +84,11 @@ def max_value_search(board, alpha, beta, last_move, level):
     for move in available_moves:
         if level + 1 > max_level:
             max_level = level + 1
-        if level >= 6:
+        # cutoff applies in level 5, 6, 7
+        if level >= difficulty + 3:
             cutoff_occured = True
             return evalfunc(result(board, move, 'X'))
-        max_value = max(max_value, min_value_search(result(board, move, 'X'), alpha, beta, move, level+1))
+        max_value = max(max_value, min_value_search(result(board, move, 'X'), alpha, beta, move, level+1, difficulty))
         if max_value >= beta:
             max_search_prunings += 1
             return max_value
@@ -94,7 +96,7 @@ def max_value_search(board, alpha, beta, last_move, level):
     return max_value
 
 
-def min_value_search(board, alpha, beta, last_move, level):
+def min_value_search(board, alpha, beta, last_move, level, difficulty):
     global cutoff_occured
     global node_count
     global min_search_prunings
@@ -102,7 +104,6 @@ def min_value_search(board, alpha, beta, last_move, level):
     node_count += 1
     if_terminate = check_terminate(board, last_move)
     if if_terminate[0]:
-        # print "min search, last move is {}, level is {}".format(last_move, level) + "TERMINATED"
         return if_terminate[1]
     min_value = sys.maxint
     available_moves = actions(board)
@@ -110,13 +111,13 @@ def min_value_search(board, alpha, beta, last_move, level):
     for move in available_moves:
         if level + 1 > max_level:
             max_level = level + 1
-        if level >= 6:
+        # cutoff applies in level 5, 6, 7
+        if level >= difficulty + 3:
             cutoff_occured = True
             return evalfunc(result(board, move, 'O'))
-        min_value = min(min_value, max_value_search(result(board, move, 'O'), alpha, beta, move, level+1))
+        min_value = min(min_value, max_value_search(result(board, move, 'O'), alpha, beta, move, level+1, difficulty))
 
         if min_value <= alpha:
-
             # if value already less than the current max value, just return it since the min value cannot exceed either
             min_search_prunings += 1
             return min_value
@@ -127,38 +128,38 @@ def min_value_search(board, alpha, beta, last_move, level):
 
 # program start point
 if __name__ == '__main__':
-    board = [x for x in range(0, 17)]
-    for x in []:
-        board[x] = 'O'
-    for x in []:
-        board[x] = 'X'
-    drawBoard(board)
-
-    user_input = raw_input("Welcome, you want to go first? (y/n) ")
-    turn = 'user' if user_input == 'y' else 'pc'
-    game_is_on = True
-    while game_is_on:
-        if turn == 'user':
-            move = player_make_move(board)
-            board[move] = 'O'
-            drawBoard(board)
-            turn = 'pc'
-            if check_if_win(board, move):
-                print 'You won!'
-                game_is_on = False
-            if check_is_full(board):
-                print "It's a tie!"
-                game_is_on = False
-            print game_is_on
-        else:
-            move = alpha_beta_search(board)
-            board[move] = 'X'
-            drawBoard(board)
-            turn = 'user'
-            if check_if_win(board, move):
-                print 'PC won!'
-                game_is_on = False
-            if check_is_full(board):
-                print "It's a tie!"
-                game_is_on = False
-            print game_is_on
+    while True:
+        board = [' ' for x in range(0, 17)]
+        drawBoard(board)
+        difficulty = input("Welcome, what difficulty you want to challenge? (easy:1, medium:2, hard:3) ")
+        difficulties = {1:"EASY", 2:"MEDIUM", 3:"HARD"}
+        print "The difficulty you have chosen is {}".format(difficulties.get(difficulty))
+        go_first = raw_input("Welcome, you want to go first? (y/n) ")
+        turn = 'user' if go_first == 'y' else 'pc'
+        game_is_on = True
+        while game_is_on:
+            if turn == 'user':
+                move = player_make_move(board)
+                board[move] = 'O'
+                turn = 'pc'
+                if check_if_win(board, move):
+                    print 'You won!'
+                    game_is_on = False
+                if check_is_full(board):
+                    print "It's a tie!"
+                    game_is_on = False
+            else:
+                move = alpha_beta_search(board, difficulty)
+                board[move] = 'X'
+                drawBoard(board)
+                turn = 'user'
+                if check_if_win(board, move):
+                    print 'PC won!'
+                    game_is_on = False
+                if check_is_full(board):
+                    print "It's a tie!"
+                    game_is_on = False
+        play_again = raw_input("Do you want to play again? (y/n) ")
+        if play_again == 'n':
+            print "bye bye..."
+            break
