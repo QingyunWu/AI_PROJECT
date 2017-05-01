@@ -1,3 +1,4 @@
+# the evaluation function defined in assignment
 def evalfunc(board):
     rows_X = {}
     rows_O = {}
@@ -47,4 +48,5 @@ def evalfunc(board):
     (1 if diag_O_1 == 2 else 0) + (1 if diag_O_2 == 2 else 0)
     O1 = len([x for x in rows_O.values() if x == 1]) + len([x for x in cols_O.values() if x == 1]) + \
     (1 if diag_O_1 == 1 else 0) + (1 if diag_O_2 == 1 else 0)
+
     return 6 * X3 + 3 * X2 + X1 - (6 * O3 + 3 * O2 + O1)
