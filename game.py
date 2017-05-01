@@ -32,13 +32,22 @@ def alpha_beta_search(board, difficulty):
     cutoff_occured = False
 
     available_moves = actions(board)
-    max_val = -sys.maxint
+    result_value = -sys.maxint
     # results record all the actions and its corresponding value after α β search
     results = {}
+    # initialize the alpha beta value
+    alpha = -1000
+    beta = 1000
     for move in available_moves:
-        min_value = min_value_search(result(board, move, 'X'), -1000, 1000, move, 1, difficulty)
+        min_value = min_value_search(result(board, move, 'X'), alpha, beta, move, 1, difficulty)
+        # record the value of the move
         results[move] = min_value
-        max_val = max(max_val, min_value)
+        result_value = max(min_value, result_value)
+        if result_value >= beta:
+            break
+        alpha = max(alpha, result_value)
+
+
     # get the time for the computer to compute for the move
     elapsed_time = time.time() - start_time
     # ouput stats for the current move
@@ -55,10 +64,10 @@ def alpha_beta_search(board, difficulty):
     print "-------------------------"
     print "Time elapsed for the PC's move: {}".format(elapsed_time)
     print "-------------------------"
+
     # iterate all the moves, find the move with max value as the chosen move
-    print results
     for move in results.keys():
-        if results.get(move) == max_val:
+        if results.get(move) == result_value:
             print "PC chose to go sqaure: {} !".format(move)
             return move
 
@@ -83,8 +92,8 @@ def max_value_search(board, alpha, beta, last_move, level, difficulty):
         # keep track of the max depth level reached
         if level + 1 > max_level:
             max_level = level + 1
-        # cutoff applies in level 5, 6, 7 in easy, medium, hard mode
-        if level >= difficulty + 3:
+        # cutoff applies in level 6, 7, 8 in easy, medium, hard mode
+        if level >= difficulty + 4:
             cutoff_occured = True
             return evalfunc(result(board, move, 'X'))
         max_value = max(max_value, min_value_search(result(board, move, 'X'), alpha, beta, move, level + 1, difficulty))
@@ -181,4 +190,3 @@ if __name__ == '__main__':
         if play_again == 'n':
             print "bye bye..."
             break
-        
