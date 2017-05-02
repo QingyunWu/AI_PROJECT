@@ -104,7 +104,7 @@ public class Main {
                 return Evaluation.evaluation(board);
             }
             maxValue = Math.max(maxValue, minValueSearch(Auxiliary.result(board, move, "X"), alpha, beta, move, level + 1, difficulty));
-            if (maxValue <= alpha) {
+            if (maxValue >= beta) {
                 maxSearchPrunings++;
                 return maxValue;
             }
