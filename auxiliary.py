@@ -1,4 +1,4 @@
-
+import time
 def drawBoard(board):
     print('-------------------------')
     print('|     |     |     |     |')
@@ -121,3 +121,5 @@ def check_if_win(board, last_move):
             return True
     # in the end, return False
     return False
+
+print time.time()

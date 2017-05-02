@@ -44,6 +44,7 @@ def alpha_beta_search(board, difficulty):
         results[move] = min_value
         result_value = max(min_value, result_value)
         if result_value >= beta:
+            max_search_prunings += 1
             break
         alpha = max(alpha, result_value)
 
@@ -121,8 +122,8 @@ def min_value_search(board, alpha, beta, last_move, level, difficulty):
     for move in available_moves:
         if level + 1 > max_level:
             max_level = level + 1
-        # cutoff applies in level 5, 6, 7
-        if level + 1 >= difficulty + 4:
+        # cutoff applies in level 6,7,8
+        if level >= difficulty + 4:
             cutoff_occured = True
             return evalfunc(result(board, move, 'O'))
         min_value = min(min_value, max_value_search(result(board, move, 'O'), alpha, beta, move, level+1, difficulty))
