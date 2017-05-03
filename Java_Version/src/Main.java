@@ -35,7 +35,7 @@ public class Main {
             alpha = Math.max(alpha, resultValue);
         }
 
-        double timeElapsed = (double)(System.nanoTime() - startTime / Math.pow(10,9));
+        double timeElapsed = (double)((System.nanoTime() - startTime) / Math.pow(10,9));
         System.out.println("-------------------------------------------------");
         System.out.println("total elapsed time for the move is: " + String.valueOf(timeElapsed));
         System.out.println("-------------------------------------------------");
@@ -72,9 +72,9 @@ public class Main {
             if (level + 1 > maxLevel) {
                 maxLevel = level + 1;
             }
-            if (level >= difficulty + 4) {
+            if (level >= difficulty + 7) {
                 cutoffOccured = true;
-                return Evaluation.evaluation(board);
+                return Evaluation.evaluation(Auxiliary.result(board, move, "O"));
             }
             minValue = Math.min(minValue, maxValueSearch(Auxiliary.result(board, move, "O"), alpha, beta, move, level + 1, difficulty));
             if (minValue <= alpha) {
@@ -99,16 +99,17 @@ public class Main {
             if (level + 1 > maxLevel) {
                 maxLevel = level + 1;
             }
-            if (level  >= difficulty + 4) {
+            // max depth 9, 10 ,11 in java
+            if (level  >= difficulty + 7) {
                 cutoffOccured = true;
-                return Evaluation.evaluation(board);
+                return Evaluation.evaluation(Auxiliary.result(board, move, "X"));
             }
             maxValue = Math.max(maxValue, minValueSearch(Auxiliary.result(board, move, "X"), alpha, beta, move, level + 1, difficulty));
             if (maxValue >= beta) {
                 maxSearchPrunings++;
                 return maxValue;
             }
-            alpha = Math.max(beta, maxValue);
+            alpha = Math.max(alpha, maxValue);
         }
         return maxValue;
 
