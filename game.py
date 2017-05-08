@@ -2,6 +2,7 @@
 
 import sys
 import time
+import random
 from evalfunc import evalfunc
 from auxiliary import actions, check_if_win, check_is_full, check_terminate, drawBoard, draw_init_board, player_make_move, result
 
@@ -17,6 +18,12 @@ The MINIMAX ALOGORITHM with ALPHA-BETA PRUNING for the computer to compute for t
 The initial α is -1000 and β is 1000
 After computation, the max depth level to reach in 10 seconds is 7, thus the cutoff test is set to level 7
 '''
+
+# method to search for easy mode
+def easy_search(board):
+    available_moves = actions(board)
+    return random.choice(available_moves)
+
 def alpha_beta_search(board, difficulty):
     global max_search_prunings
     global min_search_prunings
@@ -39,7 +46,11 @@ def alpha_beta_search(board, difficulty):
     alpha = -1000
     beta = 1000
     for move in available_moves:
-        min_value = min_value_search(result(board, move, 'X'), alpha, beta, move, 1, difficulty)
+        # if medium mode, just apply evaluation for each move
+        if difficulty == 2:
+            min_value = evalfunc(result(board, move, 'X'))
+        else:
+            min_value = min_value_search(result(board, move, 'X'), alpha, beta, move, 1, difficulty)
         # record the value of the move
         results[move] = min_value
         result_value = max(min_value, result_value)
@@ -90,13 +101,13 @@ def max_value_search(board, alpha, beta, last_move, level, difficulty):
     available_moves = actions(board)
 
     for move in available_moves:
-        # keep track of the max depth level reached
-        if level + 1 > max_level:
-            max_level = level + 1
-        # cutoff applies in level 6, 7, 8 in easy, medium, hard mode
+        # cutoff applies in level 7 hard mode
         if level >= difficulty + 4:
             cutoff_occured = True
             return evalfunc(result(board, move, 'X'))
+        # keep track of the max depth level reached
+        if level + 1 > max_level:
+            max_level = level + 1
         max_value = max(max_value, min_value_search(result(board, move, 'X'), alpha, beta, move, level + 1, difficulty))
         if max_value >= beta:
             # if value already larger than the current min value, just return it since the max value cannot exceed either
@@ -120,12 +131,12 @@ def min_value_search(board, alpha, beta, last_move, level, difficulty):
     available_moves = actions(board)
 
     for move in available_moves:
-        if level + 1 > max_level:
-            max_level = level + 1
-        # cutoff applies in level 6,7,8
+        # cutoff applies in level 7
         if level >= difficulty + 4:
             cutoff_occured = True
             return evalfunc(result(board, move, 'O'))
+        if level + 1 > max_level:
+            max_level = level + 1
         min_value = min(min_value, max_value_search(result(board, move, 'O'), alpha, beta, move, level+1, difficulty))
 
         if min_value <= alpha:
@@ -177,7 +188,13 @@ if __name__ == '__main__':
                     print "It's a tie!"
                     game_over = True
             else:
-                move = alpha_beta_search(board, difficulty)
+                if difficulty == 1:
+                    move = easy_search(board)
+                else:
+                    # if not difficult, make the cutoff level to be 1
+                    if difficulty != 3:
+                        difficulty = -3
+                    move = alpha_beta_search(board, difficulty)
                 board[move] = 'X'
                 drawBoard(board)
                 turn = 'user'
